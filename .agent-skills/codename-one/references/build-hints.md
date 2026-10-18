@@ -1,0 +1,174 @@
+# Build Hints Reference
+
+Build hints are key/value pairs in `codenameone_settings.properties` (`common/` in a Maven project, the root of a Gradle project) that are forwarded to the Codename One build server. Every key starts with `codename1.arg.` (the build server strips that prefix). They control native platform behaviour that cannot be expressed in Java/CSS: permissions, frameworks, splash screens, signing, platform SDK versions, etc.
+
+To override a hint for a single build, pass it on the command line: `-Dcodename1.arg.<hint>=<value>` to a Maven goal, `-Pcodename1.arg.<hint>=<value>` to a Gradle task. A Gradle project can also set hints in `build.gradle.kts` with `codenameone { buildHints.put("<hint>", "<value>") }`, which wins over the settings file.
+
+This file is a curated index of the most commonly needed hints. The complete authoritative reference is in the Codename One Developer Guide:
+
+- <https://www.codenameone.com/developer-guide/> — full guide
+- <https://www.codenameone.com/blog/build-hints-editor.html> — editing build hints from the simulator's *Build Hints* menu
+- <https://www.codenameone.com/blog/build-hint-variables.html> — variable substitution syntax for hints
+
+When in doubt, search the developer guide for the exact key name — there are hundreds of hints and only the ones you actually need are listed here.
+
+## Universal
+
+| Hint | Effect |
+| --- | --- |
+| `codename1.arg.java.version=17` | **Required.** Picks the JDK 17 build server toolchain. |
+| `codename1.arg.var.<name>=...` | Define a custom variable referenced as `${var.name}` elsewhere in hints. |
+
+## iOS
+
+| Hint | Effect |
+| --- | --- |
+| `codename1.arg.ios.deployment_target=14.0` | Minimum iOS version. Set to the lowest iOS you actually support. |
+| `codename1.arg.ios.teamId=ABCDEF1234` | Apple Developer Team ID; used by `ios-source` Xcode projects for code signing. |
+| `codename1.arg.ios.includePush=true` | Include APNs entitlements + frameworks for push. |
+| `codename1.arg.ios.add_libs=libsqlite3.0.dylib;libxml2.dylib` | Link extra system libraries. |
+| `codename1.arg.ios.pods=Firebase/Core,Firebase/Analytics` | CocoaPods to include. |
+| `codename1.arg.ios.pods.platform=14.0` | Pod platform target (must be >= deployment_target). |
+| `codename1.arg.ios.pods.sources=https://github.com/CocoaPods/Specs.git` | Custom Pod source repos. |
+| `codename1.arg.ios.objC=true` | Allow the iOS port to use Objective-C runtime features the strict mode would block. |
+| `codename1.arg.ios.NSCameraUsageDescription=...` | Camera privacy description in `Info.plist`. See *iOS privacy strings* below for the pattern. |
+| `codename1.arg.ios.NSLocationWhenInUseUsageDescription=...` | Location (in-use) privacy description. |
+| `codename1.arg.ios.NSPhotoLibraryUsageDescription=...` | Photo library privacy description. |
+| `codename1.arg.ios.NSMicrophoneUsageDescription=...` | Microphone privacy description. |
+| `codename1.arg.ios.plistInject=...raw XML...` | Inject raw `<key>…</key><value>…</value>` snippets into `Info.plist` for keys that don't have a dedicated `ios.NS*` hint above. |
+| `codename1.arg.ios.glAppDelegateHeader=#import "MyHeader.h"` | Prepend custom imports to the generated AppDelegate. |
+| `codename1.arg.ios.statusbar_hidden=true` | Hide the iOS status bar. |
+| `codename1.arg.ios.beforeFinishLaunching=...` | Native code inserted before iOS's `application:didFinishLaunchingWithOptions:` returns. |
+| `codename1.arg.ios.newStorageLocation=true` | Use modern iOS storage paths (recommended for new apps). |
+| `codename1.arg.ios.wallet.extension=true` | Generate an Apple Wallet issuer-provisioning extension (iOS 14+). See *Apple Wallet issuer provisioning* below. |
+| `codename1.arg.ios.documentProvider.enabled=true` | Publish the app's content as a location in the system file browser (Files on iOS, the storage picker on Android). See *Document provider* below. |
+
+## Android
+
+| Hint | Effect |
+| --- | --- |
+| `codename1.arg.android.targetSDKVersion=34` | Target SDK in the manifest (drives Play Store acceptance). |
+| `codename1.arg.android.min_sdk_version=24` | Minimum Android API level. |
+| `codename1.arg.android.buildToolsVersion=34.0.0` | Android build-tools version. Also selects the compile SDK — there is no separate compile-SDK hint. |
+| `codename1.arg.android.xpermissions=<uses-permission android:name="..."/>` | Inject extra `<uses-permission>` lines into the manifest. |
+| `codename1.arg.android.xapplication=<receiver .../>` | Inject XML inside the manifest's `<application>` element. |
+| `codename1.arg.android.activity.launchMode=singleTask` | Launch mode for the main activity. |
+| `codename1.arg.android.statusbar_hidden=true` | Hide the Android status bar. |
+| `codename1.arg.android.debug=false` | Whether to build a debug APK in addition to release. |
+| `codename1.arg.android.licenseKey=...` | Google Play licensing key. |
+| `codename1.arg.android.release=true` | Treat the build as a release (R8/ProGuard on, etc.). |
+| `codename1.arg.android.proguardKeep=...` | Extra ProGuard `-keep` rules. |
+| `codename1.arg.android.gradleDep=implementation 'com.example:lib:1.0'` | Inject Gradle dependencies. |
+
+## Push notifications
+
+| Hint | Effect |
+| --- | --- |
+| `gcm.sender_id=1234567890` | Firebase/GCM sender ID for Android push. |
+| `codename1.arg.ios.includePush=true` | Pair with the FCM/APNs setup on the iOS side. |
+
+## iOS privacy strings (`Info.plist`)
+
+iOS requires per-feature usage descriptions that the user sees in the system permission prompt. CN1 surfaces these as dedicated `ios.NS<Key>` build hints — set them directly rather than using `ios.plistInject` for these well-known keys:
+
+```properties
+codename1.arg.ios.NSCameraUsageDescription=Scan QR codes to pair the device.
+codename1.arg.ios.NSLocationWhenInUseUsageDescription=Find nearby branches.
+codename1.arg.ios.NSLocationAlwaysAndWhenInUseUsageDescription=Track delivery while the app is backgrounded.
+codename1.arg.ios.NSPhotoLibraryUsageDescription=Attach photos to support tickets.
+codename1.arg.ios.NSPhotoLibraryAddUsageDescription=Save edited photos back to your library.
+codename1.arg.ios.NSMicrophoneUsageDescription=Record voice notes.
+codename1.arg.ios.NSContactsUsageDescription=Invite friends from your address book.
+codename1.arg.ios.NSSpeechRecognitionUsageDescription=Transcribe voice notes locally.
+codename1.arg.ios.NSSiriUsageDescription=Trigger app actions from Siri shortcuts.
+```
+
+Any `ios.NS<Key>UsageDescription` key is forwarded into the generated `Info.plist`. App Store builds reject location, camera, microphone, photos, contacts, etc. without the matching description. See [Apple's CocoaKeys reference](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html) for the complete key catalog.
+
+`ios.plistInject` remains the escape hatch for raw XML snippets that don't have a dedicated `ios.NS*` hint.
+
+## Apple Wallet issuer provisioning (iOS)
+
+Card issuers can surface their cards inside the iOS Wallet app via a *non-UI issuer-provisioning extension* (plus an optional login-UI extension). Setting these hints makes the iOS build auto-generate the Objective-C extension target(s), wire the entitlements, and share data with the host app through an App Group. The host app publishes pass entries via the new `com.codename1.payment.WalletExtension` / `WalletPassEntry` Java API; the generated extension answers Wallet's ~100 ms status callback from that shared data.
+
+| Hint (`codename1.arg.` prefix) | Effect |
+| --- | --- |
+| `ios.wallet.extension=true` | **Enable.** Emit the issuer-provisioning extension. |
+| `ios.wallet.appGroup=group.com.example.app` | **Required.** Shared App Group ID (must start with `group.`) the host app and extension exchange pass data through. |
+| `ios.wallet.issuerEndpoint=https://...` | **Required.** Your HTTPS issuer endpoint that returns the encrypted pass payload. |
+| `ios.wallet.includeUI=true` | Also generate the login-UI extension (set `ios.wallet.authEndpoint=...` for its login URL). |
+| `ios.wallet.nonuiExtensionName=...` / `ios.wallet.uiExtensionName=...` | Override the default extension target names. |
+| `ios.wallet.*Inject=...raw ObjC...` | Inject custom Objective-C at marker points (`generateRequestInject`, `generateResponseInject`, `statusInject`, `uiViewDidLoadInject`, etc.) in the generated extension code. |
+
+This is an advanced, issuer-only feature — most apps never need it. The compiled native code is gated behind a build define, so leaving the hints unset is a no-op.
+
+## Document provider
+
+Publishes app content as a browsable location in the system file browser: the Files app on iOS, the storage picker on Android. Referencing `com.codename1.documents` is what makes the build generate the native plumbing -- an app-extension target plus App Group on iOS, a `DocumentsProvider` in the manifest on Android.
+
+Publish a tree of `DocumentNode`s through `com.codename1.documents.DocumentProvider`. Content comes either from bytes written under `DocumentProvider.getSharedDirectory()` (a node's `path`) or on demand from an HTTPS endpoint you host (a node's `remoteId` plus `setRemoteEndpoint`).
+
+| Hint (`codename1.arg.` prefix) | Effect |
+| --- | --- |
+| `ios.documentProvider.enabled=true` | Declares the feature. Redundant for the build, which detects the API reference itself, but it is how the Certificate Wizard and the signing preflight know the extension will be generated. |
+| `ios.documentProvider.appGroup=group.com.example.app` | Shared App Group (must start with `group.`), defaulting to `group.` plus the package name. It is the entire transport between the app and the extension. |
+| `ios.documentProvider.displayName=...` | Name the location carries in the browser; defaults to the app's display name. |
+| `ios.documentProvider.deploymentTarget=16.0` | Minimum OS version. At or above 16.0 the extension uses `NSFileProviderReplicatedExtension`; below it, the deprecated `NSFileProviderExtension`. |
+| `ios.documentProvider.extension=false` | Skip the iOS lowering entirely, leaving the API an inert no-op. |
+
+Two things to get right. Node ids must be stable for the life of the item -- the platform remembers them for favourites and recents, so ids derived from list position point the browser at the wrong file later. And the reader is a *separate process* that runs while the app is dead and cannot call Java, so publish whenever your data changes rather than in response to being browsed.
+
+If all you want is the app's own documents folder visible in Files, you need none of this -- set `ios.plistInject` with `UIFileSharingEnabled` and `LSSupportsOpeningDocumentsInPlace` instead.
+
+The extension needs its own App ID and provisioning profile; `mvn cn1:certificatewizard` (Gradle: `./gradlew certificateWizard`) creates both, along with the App Group.
+
+## State restoration and continuity
+
+Saves what the user was doing and brings it back after the OS kills the process, and -- on Apple platforms -- offers the same work to the other devices that person is signed in to. Referencing `com.codename1.continuity` is what makes an iOS build compile the `NSUserActivity` handling and declare the app's activity type in `NSUserActivityTypes`. Android needs nothing injected: no permission, no manifest entry, no dependency.
+
+Install a `StateProvider` in `init()` and let `start()` read as "restore, or else begin":
+
+```java
+Continuity.setStateProvider(provider);   // enables the framework
+...
+public void start() {
+    if (!Continuity.restore()) {
+        Navigation.navigate("/home");
+    }
+}
+```
+
+The framework already knows the `@Route` navigation stack and restores it with no code; the provider supplies everything else as a `Map`. Saving is continuous -- every navigation schedules a checkpoint -- so there is no "save on exit" hook to write. Call `Continuity.checkpoint()` after a change no navigation followed.
+
+| Hint (`codename1.arg.` prefix) | Effect |
+| --- | --- |
+| `ios.continuity.sync=false` | Skip the iCloud key-value store entitlement a reference to `com.codename1.continuity.sync` earns, leaving `SyncedStore` unsupported at runtime. |
+| `ios.continuity.sync=true` | Declare the store explicitly, which is what lets the signing preflight check the provisioning profile before the build is sent. Left unset, the build decides from the bytecode. |
+
+Three things to get right. A payload admits only `String`, `Integer`, `Long`, `Double`, `Boolean` and `List`/`Map` of those, because it has to survive reaching another device -- anything else is refused where you produced it. `com.codename1.continuity.sync` is a separate package because it is the only half that costs an entitlement, which must be granted on the App ID or the build fails at codesigning. And Codename One runs no relay server: carrying state to a non-Apple device means implementing `StateRelay` (or subclassing `RestStateRelay`) against your own endpoint, because deciding which states belong to the same person is your account system's job.
+
+## JavaScript / web
+
+| Hint | Effect |
+| --- | --- |
+| `codename1.arg.javascript.port=parparvm\|teavm` | Select the cloud compiler. ParparVM is the default; TeaVM is the public compatibility fallback. |
+| `codename1.arg.javascript.proxy.target=...` | Generate a proxy wrapper for `jakarta-servlet` (default), `javax-servlet`, `node`, `php`, `aws-lambda`, `google-cloud-functions`, `cloudflare-workers`, or `none`. |
+| `codename1.arg.javascript.proxy.allowedTargets=...` | Restrict the generated proxy to comma-separated origins, hosts, or wildcard subdomains. |
+| `codename1.arg.javascript.proxy.url=...` | Use an externally hosted proxy URL. This suppresses generated packaging unless `javascript.proxy.target` is also explicit. |
+| `codename1.arg.javascript.inject_proxy=false` | Disable proxy generation and proxy URL injection. |
+
+## Variable substitution
+
+Many hint values support `${var.name}` substitution against `codename1.arg.var.*` keys. Useful for keeping a single source of truth for things like the iOS deployment target:
+
+```properties
+codename1.arg.var.iosDeploy=14.0
+codename1.arg.ios.deployment_target=${var.iosDeploy}
+codename1.arg.ios.pods.platform=${var.iosDeploy}
+```
+
+## How to discover the right hint
+
+1. Search the [Developer Guide](https://www.codenameone.com/developer-guide/) for the platform feature you need.
+2. Or run the simulator (`mvn -pl common cn1:run`, or `./gradlew run`) and use the **Build Hints** menu — it lists every hint the plugin understands, with descriptions.
+3. Or grep the project's existing `codename1.arg.*` keys in `codenameone_settings.properties` to see what's already wired.

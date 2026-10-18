@@ -1,0 +1,19 @@
+---
+name: codename-one
+description: Build and modify Codename One cross-platform mobile apps (Java 17, Maven or Gradle, ParparVM/Android/iOS/JavaScript). Use when the project contains a `codenameone_settings.properties` (in `common/` for Maven, at the root for Gradle), a `settings.gradle.kts` applying the `com.codenameone` plugin, depends on `com.codenameone:codenameone-core`, edits CSS files under `src/main/css/`, calls `cn1:run`, `cn1:test`, `cn1:build` or `./gradlew run`, references `com.codename1.ui.*` / `com.codename1.testing.*`, works in the `backend/` project (`cn1:backend`, `./gradlew runBackend`, `com.codename1.backend.*`, `@RestController`, `@Component`, `@Transactional`), or when the user asks to build a UI, write screen tests, generate screenshots, build a server or full-stack feature, or compare to Swing/HTML/Android.
+metadata:
+  type: skill
+---
+
+# Codename One — App and UI Authoring Skill (Claude Code stub)
+
+This file exists so Claude Code can index the Codename One authoring skill.
+The actual skill content is **vendor-neutral** and lives in this repository at:
+
+- `.agent-skills/codename-one/SKILL.md` — top-level cheat sheet
+- `.agent-skills/codename-one/references/*.md` — deep-dive references
+- `.agent-skills/codename-one/tools/` — runnable Java 17 utilities (`isApiSupported`, `isCssValid`, ...)
+
+**Read `.agent-skills/codename-one/SKILL.md` next.** All the guidance you need to
+build, style, test, debug, and port to Codename One -- and to write and
+exercise the `backend/` server -- is in that directory.
