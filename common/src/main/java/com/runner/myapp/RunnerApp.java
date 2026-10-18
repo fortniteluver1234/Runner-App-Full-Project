@@ -36,7 +36,4 @@ public class RunnerApp extends Lifecycle {
         mainForm.show();
     }
 
-    private void hello() {
-        Dialog.show("Hello Codename One", "Welcome to Codename One", "OK", null);
-    }
 }
