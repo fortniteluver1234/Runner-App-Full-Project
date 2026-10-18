@@ -1,3 +1,13 @@
+/*
+Title: RunnerApp Main Interface
+Author: Ethan Brill
+Purpose: Builds the main UI screen and runs the app to display my running stats.
+Resources:
+  - Codename One Docs (Lifecycle, Form, Label, BoxLayout)
+  - Codename One Maven Plugin
+  - JDK 21
+*/
+
 package com.runner.myapp;
 
 import static com.codename1.ui.CN.*;

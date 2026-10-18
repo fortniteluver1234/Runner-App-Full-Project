@@ -1,3 +1,12 @@
+/*
+Title: Runner Collection Class
+Author: Ethan Brill
+Purpose: Holds the runner's info and manages a list of runs to figure out total distance and average pace.
+Resources:
+  - AP Computer Science A (Unit 3: Class Creation, Topic 3.5 and Unit 4: Data Collections, Topic 4.8 ArrayList)
+  - Codename One API Docs
+*/
+
 package com.runner.myapp;
 
 import java.util.ArrayList;

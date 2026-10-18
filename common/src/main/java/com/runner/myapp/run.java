@@ -1,3 +1,12 @@
+/*
+Title: Run Data Model
+Author: Ethan Brill
+Purpose: Creates the Run object to save distance, duration, and run names using constructors and getter/setter methods.
+Resources:
+  - AP Computer Science A (Unit 3: Class Creation, Topic 3.4 Constructors and Topic 3.5 Methods)
+  - Codename One API Docs
+*/
+
 package com.runner.myapp;
 
 public class run {
